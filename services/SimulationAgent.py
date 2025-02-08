@@ -18,13 +18,9 @@ memory = ConversationBufferMemory(
 
 # Outil personnalisé pour l'analyse IBP
 def simulation_agent(
-        company_name: str,
         prevision: str,
         processes: list,
         constraints: list,
-        cost_breakdown: list,
-        current_daily_production: str,
-        bottlenecks: list,
         incident_data: str
 
       ) -> str:
@@ -49,14 +45,11 @@ def simulation_agent(
             # Simplified prompt for Gemini
             template = f"""
             Contexte:
-            L'entreprise {company_name}, opérant sur le marché algérien, envisage {prevision}.
+            L'entreprise opérant sur le marché algérien, envisage {prevision}.
             Les spécifications et contraintes de l'entreprise sont définies dans le suivant :
             - Processus : {processes}
             - Contraintes : {constraints}
-            - Coûts : {cost_breakdown}
-            - Production actuelle : {current_daily_production}
-            - Goulots d'étranglement : {bottlenecks}
-            - Incidents : {incident_data}
+            - Les anciens risques : {incident_data}
 
             Rôle:
             Tu es un expert en planification intégrée (IBP) et en gestion opérationnelle. Ton rôle est de prédire et d'analyser les risques potentiels liés à l'augmentation de production de 25% pour le Produit Alpha, et de déterminer, parmi toutes les options possibles, la décision optimale à recommander pour validation par le responsable. 
@@ -124,14 +117,11 @@ def simulation_agent(
     # Exemple d'utilisation
     response = agent.run(
         f""" Contexte:
-            L'entreprise {company_name}, opérant sur le marché algérien, envisage {prevision}.
+            L'entreprise opérant sur le marché algérien, envisage {prevision}.
             Les spécifications et contraintes de l'entreprise sont définies dans le suivant :
             - Processus : {processes}
             - Contraintes : {constraints}
-            - Coûts : {cost_breakdown}
-            - Production actuelle : {current_daily_production}
-            - Goulots d'étranglement : {bottlenecks}
-            - Incidents : {incident_data}
+            - Les anciens risques : {incident_data}
 
 
             Rôle:

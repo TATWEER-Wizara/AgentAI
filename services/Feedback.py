@@ -16,26 +16,18 @@ memory = ConversationBufferMemory(
 
 def feedback_agent(
     feedback: str,
-    company_name: str,
     prevision: str,
     processes: list,
     constraints: list,
-    cost_breakdown: list,
-    current_daily_production: str,
-    bottlenecks: list,
-    incident_data: str
 ) -> str:
     
     # Create a prompt template that embeds all company-specific variables.
     prompt_template = f"""
         Contexte:
-        L'entreprise {company_name} envisage {prevision}
+        L'entreprise envisage {prevision}
         Processus: {processes}
         Contraintes: {constraints}
-        Coûts: {cost_breakdown}
-        Production actuelle: {current_daily_production}
-        Goulots d'étranglement: {bottlenecks}
-        Incidents: {incident_data}
+
 
         Feedback reçu: {feedback}
 

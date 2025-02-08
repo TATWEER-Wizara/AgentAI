@@ -1,7 +1,9 @@
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from typing import List
 import uvicorn
+
 from services.Feedback import feedback_agent
 from services.SimulationAgent import simulation_agent
 from services.ProductionAgent import production_agent
@@ -10,35 +12,44 @@ from services.ProductionAgent import production_agent
 app = FastAPI()
 
 
-# Define Pydantic models for request bodies
 class SimulationAgentRequest(BaseModel):
-    data: dict 
+    prevision: str
+    processes: List[str]
+    constraints: List[str]
+    incident_data: str
 
 class ProductionAgentRequest(BaseModel):
-    data: dict  
+    prevision: str
+    processes: List[str]
+    constraints: List[str]
+    incident_data: str
+    probleme: str
 
 class FeedbackRequest(BaseModel):
-    feedback: dict
+    feedback: str
+    prevision: str
+    processes: List[str]
+    constraints: List[str]
 
 
 
 @app.post("/simulation-agent")
 async def simulation_agent_main(request: SimulationAgentRequest):
-    simulation_agent(request)
-    return 
+    return simulation_agent(request)
+    
 
 
 @app.post("/production-agent")
 async def production_agent_main(request: ProductionAgentRequest):
-    production_agent(request)
-    return 
+    return production_agent(request)
+     
 
 @app.post("/feedback")
 async def feedback_main(request: FeedbackRequest):
     if (request["feedback"] == 'rejected'):
-        production_agent(request)
-    feedback_agent(request)
-    return
+        return production_agent(request)
+    return feedback_agent(request)
+    
 
 
 if __name__ == "__main__":

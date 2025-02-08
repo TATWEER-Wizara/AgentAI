@@ -19,14 +19,11 @@ memory = ConversationBufferMemory(
 
 
 def production_agent(
-    company_name: str,
     prevision: str,
     processes: list,
     constraints: list,
-    cost_breakdown: list,
-    current_daily_production: str,
-    bottlenecks: list,
-    incident_data: str
+    incident_data: str,
+    probleme : str
 ) -> str:
 
 
@@ -50,14 +47,12 @@ def production_agent(
 
             template = f"""
             Contexte:
-            L'entreprise {company_name}, opérant sur le marché algérien, envisage {prevision}
+            L'entreprise opérant sur le marché algérien, envisage {prevision}
             Les spécifications et contraintes en production sont définies ci-dessous :
             - Processus : {processes}
             - Contraintes : {constraints}
-            - Coûts : {cost_breakdown}
-            - Goulots d'étranglement : {bottlenecks}
-            - Production actuelle : {current_daily_production}
-            - Incidents : {incident_data}
+            - Les anciens risques : {incident_data}
+            - Probleme rencontré : {probleme} 
 
             Rôle:
             Tu es un expert en planification intégrée (IBP) et en gestion opérationnelle en environnement de production. Ton rôle est d'analyser en temps réel les problèmes rencontrés en production et de proposer la solution optimale. Tu dois également maintenir la mémoire des interactions et incidents précédents afin d'ajuster tes recommandations. Pour chaque problème de production signalé, tu dois :
@@ -129,14 +124,12 @@ def production_agent(
     # Exemple d'utilisation
     response = agent.run(
         f"""Contexte:
-        L'entreprise {company_name}, opérant sur le marché algérien, envisage {prevision}
+        L'entreprise opérant sur le marché algérien, envisage {prevision}
         Les spécifications et contraintes en production sont définies ci-dessous :
         - Processus : {processes}
         - Contraintes : {constraints}
-        - Coûts : {cost_breakdown}
-        - Goulots d'étranglement : {bottlenecks}
-        - Production actuelle : {current_daily_production}
-        - Incidents : {incident_data}
+        - Les anciens risques : {incident_data}
+        - Probleme rencontré : {probleme}
 
         Rôle:
         Tu es un expert en planification intégrée (IBP) et en gestion opérationnelle en environnement de production. Ton rôle est d'analyser en temps réel les problèmes rencontrés en production et de proposer la solution optimale. Tu dois également maintenir la mémoire des interactions et incidents précédents afin d'ajuster tes recommandations. Pour chaque problème de production signalé, tu dois :
