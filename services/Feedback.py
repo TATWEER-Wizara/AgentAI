@@ -1,59 +1,76 @@
+import os
 from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI 
+from langchain_google_genai import ChatGoogleGenerativeAI  
 from langchain.memory import ConversationBufferMemory
 from langchain.chains.llm import LLMChain
 from langchain.prompts import PromptTemplate
 
 load_dotenv()
 
-
-
-# Set up conversation memory (stateful memory)
+# Global memory instance to store conversation history
 memory = ConversationBufferMemory(
     memory_key="chat_history",
     return_messages=True,
     output_key="output"
 )
 
-# Define a prompt template for processing feedback
-feedback_template = """
-Contexte:
-Ton rôle est de recevoir des retours sur ta solution de planification intégrée (IBP). 
-Tu as déjà fourni une solution et maintenant tu reçois un feedback. 
-Feedback reçu: {feedback}
-
-Instructions:
-- Lis le feedback.
-- Ne génère aucune analyse détaillée.
-- Réponds uniquement par une phrase courte indiquant que tu as bien noté le feedback, par exemple : "Noted, thanks for the feedback."
-- Mets à jour ta mémoire avec ce feedback pour améliorer tes futures recommandations, sans réexécuter d'analyse.
-
-Réponds uniquement par une phrase courte.
-"""
-
-# Create a PromptTemplate for the feedback loop
-feedback_prompt = PromptTemplate(
-    template=feedback_template,
-    input_variables=["feedback"]
-)
-
-# Initialize your LLM (using Google's Gemini in this example)
-llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.5)
-
-# Create an LLMChain that will process the feedback
-feedback_chain = LLMChain(llm=llm, prompt=feedback_prompt)
-
-def process_feedback(feedback_text):
-    # Process the feedback using the LLMChain
-    response = feedback_chain.run({"feedback": feedback_text})
+def feedback_agent(
+    feedback: str,
+    company_name: str,
+    prevision: str,
+    processes: list,
+    constraints: list,
+    cost_breakdown: list,
+    current_daily_production: str,
+    bottlenecks: list,
+    incident_data: str
+) -> str:
     
-    # Update the memory with the feedback (storing both input and the received feedback)
-    memory.save_context({"input": "Feedback received"}, {"output": feedback_text})
+    # Create a prompt template that embeds all company-specific variables.
+    prompt_template = f"""
+        Contexte:
+        L'entreprise {company_name} envisage {prevision}
+        Processus: {processes}
+        Contraintes: {constraints}
+        Coûts: {cost_breakdown}
+        Production actuelle: {current_daily_production}
+        Goulots d'étranglement: {bottlenecks}
+        Incidents: {incident_data}
+
+        Feedback reçu: {feedback}
+
+        Rôle:
+        Tu es un expert en planification intégrée (IBP) et en gestion opérationnelle. Ton rôle est de recevoir des retours sur ta solution et d'analyser ce feedback.
+        Si le feedback indique que la solution est acceptée, tu dois renvoyer une action d'appel d'outil sous forme de JSON pour appeler l'outil "SendEmailToManager" avec les paramètres suivants:
+        - subject: "Production Solution Approved"
+        - body: "The production solution has been approved based on the recent feedback: {{feedback}}. Please review the solution details for further action."
+        Sinon, réponds simplement par "Noted, thanks for the feedback".
+
+        Instructions:
+        1. Active ta réflexion (Chain-of-Thought) pour déterminer si le feedback est positif ou négatif.
+        2. Si positif, renvoie une action d'appel d'outil (en JSON) pour "SendEmailToManager" avec les clés 'subject' et 'body' comme indiqué.
+        3. Sinon, répond simplement par "Noted, thanks for the feedback".
+        4. Ne fournis aucune analyse détaillée dans ta réponse finale.
+
+        Réponds uniquement par ta réponse finale ou par un appel à outil si nécessaire.
+        """
+    
+    # Create a PromptTemplate using the above template; only "feedback" remains dynamic.
+    prompt = PromptTemplate(
+        template=prompt_template,
+        input_variables=["feedback"]
+    )
+    
+    # Initialize the LLM (using Google's Gemini in this example)
+    llm_instance = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.5)
+    
+    # Create an LLMChain with the prompt
+    chain = LLMChain(llm=llm_instance, prompt=prompt)
+    
+    # Process the feedback using the chain
+    response = chain.run({"feedback": feedback})
+
+    # Update memory with interaction
+    memory.save_context({"input": "feedback"}, {"output": feedback})
     
     return response
-
-# Example usage:
-feedback_input = "La solution semble correcte dans l'ensemble, mais ajuste les estimations de coûts de production."
-feedback_response = process_feedback(feedback_input)
-print("Feedback Response:")
-print(feedback_response)
